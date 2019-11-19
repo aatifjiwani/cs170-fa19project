@@ -7,6 +7,7 @@ import utils
 import itertools
 
 from dijkstar import Graph, find_path
+import networkx as nx
 
 import random
 
@@ -26,8 +27,8 @@ def createLocationsAndHouses(maxLocations, maxHouses):
 
 	return locations, houses
 
-def createHamiltonianCycle(graph=Graph, max_weight=int, num_locations=int):
-	edgesToAdd = [x for x in range(1, num_locations))]
+def createHamiltonianCycle(graph, max_weight=int, num_locations=int):
+	edgesToAdd = [x for x in range(1, num_locations)]
 	vertexLastAdded = 0
 	maxWeight = max_weight
 
@@ -37,11 +38,11 @@ def createHamiltonianCycle(graph=Graph, max_weight=int, num_locations=int):
 
 		weight = random.randint(1, maxWeight)
 
-		graph.add_edge(vertexLastAdded, toVertex, weight)
+		graph.add_edge(vertexLastAdded, toVertex, weight=weight)
 		vertexLastAdded = toVertex
 
 	weight = random.randint(1, maxWeight)
-	graph.add_edge(vertexLastAdded, 0, weight)
+	graph.add_edge(vertexLastAdded, 0, weight=weight)
 
 
 if __name__ == "__main__":
@@ -56,10 +57,10 @@ if __name__ == "__main__":
 	print("locations: ", len(locations), " ", locations)
 	print("houses: ", len(houses) , " ", houses)
 
-	graph = Graph(undirected = True)
+	graph = nx.Graph()
 	createHamiltonianCycle(graph, args.w, len(locations))
 	
-	print(graph)
+	print(graph.adj)
 
 
 
