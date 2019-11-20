@@ -117,13 +117,13 @@ if __name__ == "__main__":
 	print(graph.adj)
 
 
-  graph = nx.Graph()
-	# for u in edges.keys():
-	# 	incidentEdges = edges[u]
-	# 	#print(labeledEdges)
-	# 	createEdge(graph, u, incidentEdges)
-  graph = randomGenCheck(graph, 20, 40, 5)
-  print(graph)
+#   graph = nx.Graph()
+# 	# for u in edges.keys():
+# 	# 	incidentEdges = edges[u]
+# 	# 	#print(labeledEdges)
+# 	# 	createEdge(graph, u, incidentEdges)
+#   graph = randomGenCheck(graph, 20, 40, 5)
+#   print(graph)
 	# #print(find_path(graph, 0, 4))
 
 	# print(graph)
