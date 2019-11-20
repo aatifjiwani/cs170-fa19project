@@ -12,6 +12,7 @@ import networkx as nx
 from dijkstar import Graph, find_path
 
 import random
+import copy
 
 #def generateOutput():
 first = ["Chelm", "Elm", "El", "Bur", "En", "Eg", "Pem", "Pen", "Edg", "Sud", "Sod", "Hors", "Dur", "Sun", "Nort", "Brad", "Farn", "Barn", "Dart", "Hart", "South", "Shaft", "Blan", "Rock", "Alf", "Wy", "Marl", "Staf", "Wet", "Cas", "Stain", "Whit", "Stap", "Brom", "Wych", "Watch", "Win", "Horn", "Mel", "Cook", "Hurst", "Ald", "Shriv", "Kings", "Clere", "Maiden", "Leather", "Brack","Brain", "Walt", "Prest", "Wen", "Flit", "Ash"]
@@ -32,7 +33,7 @@ def createLocationsAndHouses(maxLocations, maxHouses):
 def createHamiltonianCycle(graph, max_weight=int, num_locations=int):
 	edgesToAdd = [x for x in range(1, num_locations)]
 	vertexLastAdded = 0
-	maxWeight = max_weight
+	maxWeight = int(max_weight / 2)
 
 	while (len(edgesToAdd) != 0):
 		toVertex = random.sample(edgesToAdd, 1)[0]
@@ -43,7 +44,7 @@ def createHamiltonianCycle(graph, max_weight=int, num_locations=int):
 		graph.add_edge(vertexLastAdded, toVertex, weight=weight)
 		vertexLastAdded = toVertex
     
-  weight = random.randint(1, maxWeight)
+	weight = random.randint(1, maxWeight)
 	graph.add_edge(vertexLastAdded, 0, weight=weight)
 
 
@@ -86,16 +87,35 @@ def randomGen(graph, n, numEdges, maxWeight):
     return graph
 
 def randomGenCheck(graph, i, j, k):
-    g = randomGen(graph, i, j, k)
-    its = 1
-    while (not is_metric(g)):
+	gOld = copy.deepcopy(graph)
+	g = randomGen(graph, i, j, k)
+	its = 1
+	while (not is_metric(g)):
+		temp = copy.deepcopy(gOld)
+		g = randomGen(nx.Graph(), i, j, k)
+		gOld = temp
+		its += 1
 
-        g = randomGen(nx.Graph(), i, j, k)
-        its += 1
-    print(matrixConvert(g, i))
-    print(g.adj)
-    print(its)
-    return g  
+	print("asdada", its)
+	#print(matrixConvert(g, i))
+	#print(g.adj)
+	#print(its)
+	return g  
+
+def saveGraphToFile(graph, maxLocations, locations, houses):
+	inputFileName = 'input/' + str(maxLocations) + '.in'
+	utils.write_to_file(inputFileName, str(len(locations)) + '\n')
+	utils.write_to_file(inputFileName, str(len(houses)) + '\n', append=True)
+
+	stringsOfLocations = " ".join(locations)
+	stringOfHouses = " ".join(houses)
+	utils.write_to_file(inputFileName, stringsOfLocations + '\n', True)
+	utils.write_to_file(inputFileName, stringOfHouses + '\n', True)
+	utils.write_to_file(inputFileName, locations[0] + '\n', True)
+
+	graphToMatrix = matrixConvert(graph, len(locations))
+	utils.write_to_file(inputFileName, graphToMatrix, True)
+
   
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Parsing arguments')
@@ -106,15 +126,24 @@ if __name__ == "__main__":
 
 	locations, houses = createLocationsAndHouses(args.l, args.t)
 
-
-
 	print("locations: ", len(locations), " ", locations)
 	print("houses: ", len(houses) , " ", houses)
 
 	graph = nx.Graph()
 	createHamiltonianCycle(graph, args.w, len(locations))
+
+	graph = randomGenCheck(graph, len(locations), 2*len(locations), args.w)
 	
+
+	print(matrixConvert(graph, len(locations)))
+
 	print(graph.adj)
+
+	saveGraphToFile(graph, args.l, locations, houses)
+
+	
+	
+
 
 
 #   graph = nx.Graph()
