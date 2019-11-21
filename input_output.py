@@ -134,13 +134,13 @@ if __name__ == "__main__":
 
 	graph = randomGenCheck(graph, len(locations), 2*len(locations), args.w)
 	
-
 	print(matrixConvert(graph, len(locations)))
-
 	print(graph.adj)
 
 	saveGraphToFile(graph, args.l, locations, houses)
 
+
+	
 	
 	
 
