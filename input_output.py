@@ -31,21 +31,25 @@ def createLocationsAndHouses(maxLocations, maxHouses):
 	return locations, houses
 
 def createHamiltonianCycle(graph, max_weight=int, num_locations=int):
-	edgesToAdd = [x for x in range(1, num_locations)]
-	vertexLastAdded = 0
-	maxWeight = int(max_weight / 2)
+    edgesToAdd = [x for x in range(1, num_locations)]
+    vertexLastAdded = 0
+    maxWeight = int(max_weight / 2)
 
-	while (len(edgesToAdd) != 0):
-		toVertex = random.sample(edgesToAdd, 1)[0]
-		edgesToAdd.remove(toVertex)
+    while (len(edgesToAdd) != 0):
+        toVertex = random.sample(edgesToAdd, 1)[0]
+        print(toVertex)
 
-		weight = random.randint(1, maxWeight)
+        edgesToAdd.remove(toVertex)
 
-		graph.add_edge(vertexLastAdded, toVertex, weight=weight)
-		vertexLastAdded = toVertex
+        weight = random.randint(1, maxWeight)
+
+        graph.add_edge(vertexLastAdded, toVertex, weight=weight)
+        #graph.add_edge(toVertex, vertexLastAdded, weight=weight)
+        vertexLastAdded = toVertex
     
-	weight = random.randint(1, maxWeight)
-	graph.add_edge(vertexLastAdded, 0, weight=weight)
+    weight = random.randint(1, maxWeight)
+    graph.add_edge(vertexLastAdded, 0, weight=weight)
+	#graph.add_edge(0, vertexLastAdded, weight=weight)
 
 
 def createEdge(numEdges, maxWeight, graph=Graph, u=int, setOfVAndWeight=list):
@@ -79,12 +83,26 @@ def randomGen(graph, n, numEdges, maxWeight):
         for j in range(i, n):
             if i != j:
                 edges.append((i,j))
-    samp = random.sample(edges, numEdges)
+    samp = random.sample(edges, numEdges + n)
+    its = 0
     for k in samp:
+        print(its)
+        count = 0
         w = random.sample(range(1, maxWeight), 1)[0]
         graph.add_edge(k[0], k[1], weight = w)
-        graph.add_edge(k[1], k[0], weight = w)
-    return graph
+        #graph.add_edge(k[1], k[0], weight = w)
+        while (not is_metric(graph) and count < 10):
+            graph.remove_edge(k[0], k[1])
+            w = random.sample(range(1, maxWeight), 1)[0]
+            graph.add_edge(k[0], k[1], weight = w)
+            count = count + 1
+
+        if (not is_metric(graph)):
+            print("had remove")
+            graph.remove_edge(k[0], k[1])
+
+        its = its + 1
+    #return graph
 
 def randomGenCheck(graph, i, j, k):
 	gOld = copy.deepcopy(graph)
@@ -118,29 +136,120 @@ def saveGraphToFile(graph, maxLocations, locations, houses):
 
   
 if __name__ == "__main__":
-	parser = argparse.ArgumentParser(description='Parsing arguments')
-	parser.add_argument('-l', type=int, help="Most locations")
-	parser.add_argument('-t', type=int, help="Most homes")
-	parser.add_argument('-w', type=int, help="Max weight")
-	args = parser.parse_args()
+    parser = argparse.ArgumentParser(description='Parsing arguments')
+    parser.add_argument('-l', type=int, help="Most locations")
+    parser.add_argument('-t', type=int, help="Most homes")
+    parser.add_argument('-w', type=int, help="Max weight")
+    args = parser.parse_args()
 
-	locations, houses = createLocationsAndHouses(args.l, args.t)
+    locations, houses = createLocationsAndHouses(args.l, args.t)
 
-	print("locations: ", len(locations), " ", locations)
-	print("houses: ", len(houses) , " ", houses)
+    print("locations: ", len(locations), " ", locations)
+    print("houses: ", len(houses) , " ", houses)
 
-	graph = nx.Graph()
-	createHamiltonianCycle(graph, args.w, len(locations))
+    graph = nx.Graph()
+    createHamiltonianCycle(graph, args.w, len(locations))
 
-	graph = randomGenCheck(graph, len(locations), 2*len(locations), args.w)
-	
-	print(matrixConvert(graph, len(locations)))
-	print(graph.adj)
+    for c in nx.minimum_cycle_basis(graph, weight='weight'):
+        print(c)
 
-	saveGraphToFile(graph, args.l, locations, houses)
+    #graph = randomGen(graph, len(locations), 2*len(locations), args.w)
+    randomGen(graph, len(locations), 2*len(locations), args.w)
+
+    #graph = graph.to_directed()
+
+    print(matrixConvert(graph, len(locations)))
+    #print(graph.adj)
+
+    saveGraphToFile(graph, args.l, locations, houses)
 
 
-	
+		# --- solution ------ #
+
+	# for neighbor in nx.all_neighbors(graph, 0):
+	# 	print(neighbor)
+
+	# minEdge = None
+	# edgeDict = dict()
+	# for edge in list(nx.edges(graph, nbunch=[0])):
+	# 	#edgeDict[edge] = graph[edge[0]][edge[1]]['weight']
+	# 	print(edge, graph[edge[0]][edge[1]]['weight'])
+
+	# minEdge = min(edgeDict, key=edgeDict.get)
+	# print(minEdge)
+
+	# graph.remove_edge(minEdge[0], minEdge[1])
+	#print(matrixConvert(graph, len(locations)))
+    housesDict = {}
+
+    for house in houses:
+        housesDict[locations.index(house)] = ([], float('inf'))
+
+    startingLocation = 0
+    minCycle = None
+    for c in nx.minimum_cycle_basis(graph, weight='weight'):
+        if (startingLocation in c and is_valid_walk(graph, c)):
+            print(len(c))
+            minCycle = c
+            #break
+
+    indexForStart = minCycle.index(startingLocation)
+    minCycle = minCycle[indexForStart:] + minCycle[:indexForStart]
+    print(minCycle)
+
+
+	#print('path: ', nx.dijkstra_path(graph, minEdge[0], minEdge[1], weight='weight'))
+	#print('shrt length: ', nx.dijkstra_path_length(graph, 0, locations.index(houses[1]), weight='weight'))
+
+    for vertex in minCycle:
+        for house in housesDict.keys():
+            currMinWeight = housesDict[house][1]
+            pathWeight = nx.dijkstra_path_length(graph, vertex, house, weight='weight')
+            if (pathWeight < currMinWeight):
+                path = nx.dijkstra_path(graph, vertex, house, weight='weight')
+
+                housesDict[house] = (path, pathWeight)
+
+	#print(housesDict)
+
+    locationDict = {}
+    for location in minCycle:
+        locationDict[location] = []
+
+    dropoffLocations = set()
+    for house in housesDict.keys():
+        path = housesDict[house][0]
+        dropoff = path[0]
+        locationDict[dropoff].append(house)
+        dropoffLocations.add(dropoff)
+
+    print(locationDict)
+
+	# --- output timeeeeee --- #
+
+    cycle = ' '.join([locations[vertex] for vertex in minCycle]) + ' ' + locations[startingLocation]
+    print(cycle)
+    print(dropoffLocations)
+
+    numDropoffs = len(dropoffLocations)
+
+    dropoffPaths = []
+    for dropoff in dropoffLocations:
+        path = locations[dropoff] + ' ' + ' '.join([locations[vertex] for vertex in locationDict[dropoff]])
+        dropoffPaths.append(path)
+
+    print(dropoffPaths)
+
+    outputFileName = 'output/' + str(args.l) + '.out'
+
+
+    utils.write_to_file(outputFileName, cycle + '\n')
+    utils.write_to_file(outputFileName, str(numDropoffs) + '\n', append=True)
+    for p in dropoffPaths:
+        utils.write_to_file(outputFileName, p + '\n', append=True)
+
+    print(graph.edges)
+
 	
 	
 
