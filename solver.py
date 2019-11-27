@@ -4,6 +4,8 @@ sys.path.append('..')
 sys.path.append('../..')
 import argparse
 import utils
+import mlrose
+import numpy as np
 
 from student_utils import *
 """
@@ -24,10 +26,32 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
         A list of locations representing the car path
         A list of (location, [homes]) representing drop-offs
     """
+    homes = []
+    homes.append(0)
+    for i in list_of_homes:
+        homes.append(list_of_locations.index(i))
+    dist_list = []
+    print(homes)
+    g = nx.Graph()
+    for i in range(len(adjacency_matrix)):
+        for j in range(len(adjacency_matrix)):
+            if (not adjacency_matrix[i][j] == 'x'):
+                g.add_edge(i, j, weight = adjacency_matrix[i][j])
+    shortest_paths = dict(nx.all_pairs_dijkstra(g, weight = 'weight'))
+    for i in shortest_paths.keys():
+        for j in shortest_paths[i][0].keys():
+            if (not i == j) and (i in homes) and (j in homes):
+                print((i,j, shortest_paths[i][0][j]))
+                print("\n")
+                dist_list.append((homes.index(i), homes.index(j), shortest_paths[i][0][j] ))
+    fitness_dists = mlrose.TravellingSales(distances = dist_list)
+    problem_fit = mlrose.TSPOpt(length = len(list_of_homes), fitness_fn = fitness_dists, maximize=False)
+    best_state, best_fitness = mlrose.genetic_alg(problem_fit)
+    print(best_state)
+    print(best_fitness)
 
-    
     pass
-    
+
 
 """
 ======================================================================
@@ -59,7 +83,7 @@ def convertToFile(path, dropoff_mapping, path_to_file, list_locs):
 
 def solve_from_file(input_file, output_directory, params=[]):
     print('Processing', input_file)
-    
+
     input_data = utils.read_file(input_file)
     num_of_locations, num_houses, list_locations, list_houses, starting_car_location, adjacency_matrix = data_parser(input_data)
     car_path, drop_offs = solve(list_locations, list_houses, starting_car_location, adjacency_matrix, params=params)
@@ -69,7 +93,7 @@ def solve_from_file(input_file, output_directory, params=[]):
     output_file = f'{output_directory}/{output_filename}'
     if not os.path.exists(output_directory):
         os.makedirs(output_directory)
-    
+
     convertToFile(car_path, drop_offs, output_file, list_locations)
 
 
@@ -94,6 +118,3 @@ if __name__=="__main__":
     else:
         input_file = args.input
         solve_from_file(input_file, output_directory, params=args.params)
-
-
-        
