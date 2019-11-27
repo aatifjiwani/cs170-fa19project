@@ -43,7 +43,7 @@ def createHamiltonianCycle(graph, max_weight=int, num_locations=int):
 
 		graph.add_edge(vertexLastAdded, toVertex, weight=weight)
 		vertexLastAdded = toVertex
-    
+
 	weight = random.randint(1, maxWeight)
 	graph.add_edge(vertexLastAdded, 0, weight=weight)
 
@@ -100,7 +100,7 @@ def randomGenCheck(graph, i, j, k):
 	#print(matrixConvert(g, i))
 	#print(g.adj)
 	#print(its)
-	return g  
+	return g
 
 def saveGraphToFile(graph, maxLocations, locations, houses):
 	inputFileName = 'input/' + str(maxLocations) + '.in'
@@ -116,7 +116,21 @@ def saveGraphToFile(graph, maxLocations, locations, houses):
 	graphToMatrix = matrixConvert(graph, len(locations))
 	utils.write_to_file(inputFileName, graphToMatrix, True)
 
-  
+def FindPath(graph, maxedge):
+	g = copy.deepcopy(graph)
+	min = maxedge
+	at = 0
+	edges = g.adj[0]
+	print("her \n")
+	print(edges)
+	for e in edges:
+		if (edges[e]['weight'] < min):
+			min = edges[e]['weight']
+			at = e# -*- coding: utf-8 -*-
+	return (min, at)
+
+
+
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Parsing arguments')
 	parser.add_argument('-l', type=int, help="Most locations")
@@ -133,16 +147,17 @@ if __name__ == "__main__":
 	createHamiltonianCycle(graph, args.w, len(locations))
 
 	graph = randomGenCheck(graph, len(locations), 2*len(locations), args.w)
-	
-	print(matrixConvert(graph, len(locations)))
-	print(graph.adj)
+
+	#print(matrixConvert(graph, len(locations)))
+	#print(graph.adj)
+	print(FindPath(graph, args.w))
 
 	saveGraphToFile(graph, args.l, locations, houses)
 
 
-	
-	
-	
+
+
+
 
 
 
@@ -168,4 +183,3 @@ if __name__ == "__main__":
 	# 	5: [ (3,1) ],
 	# 	6: [ (0,1), (3,1)]
 	# }
-
