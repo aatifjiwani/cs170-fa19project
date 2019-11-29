@@ -15,6 +15,45 @@ import queue
 ======================================================================
 """
 
+class Cluster:
+    def __init__(self, homeIndex):
+        self.home = homeIndex
+
+    def __repr__(self):
+        return f"Cluster for home {self.home}"
+
+    def __str__(self):
+        return f"Cluster for home {self.home}"
+
+    def home(self):
+        return self.home
+
+
+def kClosestClusters(graph, start, k):
+
+    currQ = queue.Queue()
+    visited = dict()
+
+    visited[start] = 0
+    currQ.queue = queue.deque([start])
+    while (len(visited.keys()) < k + 1):
+        newQ = queue.Queue()
+        while(not currQ.empty()):
+            currVertex = currQ.get()
+            # print('c', currVertex, graph[currVertex])
+            # print('g', graph[currVertex][list(graph[currVertex])[0]]['weight'])
+            # print(visited[currVertex])
+            neighbors = [(node, graph[currVertex][node]['weight'] + visited[currVertex]) for node in list(graph[currVertex])]
+            #print("n", neighbors)
+            for n in neighbors:
+                visited[n[0]] = min(n[1], visited.get(n[0], float('inf')))
+                newQ.put(n[0])
+        
+        #print(visited)
+        currQ = newQ
+
+    return sorted(list(visited.items()), key= lambda v: v[1])[:k+1]
+
 def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_matrix, params=[]):
     """
     Write your algorithm here.
@@ -30,6 +69,7 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
     #print(list_of_locations)
     #print(adjacency_matrix)
 
+    print()
     graph, message = adjacency_matrix_to_graph(adjacency_matrix)
     print("total list edges: ", list(graph.edges), "\n\n")
     for i in range(0, 3):
@@ -42,29 +82,31 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
 
     for home in homeIndicesInGraph:
         print(f"adjacent edges to {home}:  {graph[home]}")
+
+    print("\n----------\n")
+    k = 2
+    nodesToDelete = set()
+    for home in homeIndicesInGraph:
+        print(f"cluster size {k} for {home}:")
+        shortestKClusters = kClosestClusters(graph, home, k)
+        print(f"fullCluster: {shortestKClusters} \n")
+
+        nodesInCluster = [node[0] for node in shortestKClusters]
+        clusterNode = Cluster(home)
+        
+        for node in nodesInCluster:
+            nodesToDelete.add(node)
+            neighbors = [x for x in list(graph[node]) if x not in nodesInCluster]
+
+            
+
+
+        break
+
     
     pass
 
-def getKClusters(graph, start, k):
 
-    currentCluster = [start]
-    previousCluster = []
-    while (k != 0):
-        currQ = queue.Queue()
-        currQ.queue = queue.deque(currentCluster)
-
-        neighborLocations = []
-
-        while(not currQ.empty):
-            loc = currQ.get()
-            neighborLocations += list(graph[loc])
-
-        previousCluster += currentCluster
-        currentCluster = neighborLocations
-
-        k = k - 1
-
-    return previousCluster + currentCluster, currentCluster
 
 
 
