@@ -8,7 +8,7 @@ import utils
 from student_utils import *
 import networkx as nx
 
-import queue
+from queue import PriorityQueue
 """
 ======================================================================
   Complete the following function.
@@ -30,29 +30,21 @@ class Cluster:
 
 
 def kClosestClusters(graph, start, k):
+    elementsInCluster = [] # (node, weight)
+    pq = PriorityQueue()
+    pq.put((0, start)) # (weight, node)
+    while (len(elementsInCluster) < k + 1 and not pq.empty()):
+        weight, poppedNode = pq.get()
+        if poppedNode not in elementsInCluster:
+            elementsInCluster.append((poppedNode, weight))
+            for nbor in graph[poppedNode]:
+                pq.put(( weight + graph[poppedNode][nbor][0]['weight'], nbor ))
 
-    currQ = queue.Queue()
-    visited = dict()
-
-    visited[start] = 0
-    currQ.queue = queue.deque([start])
-    while (len(visited.keys()) < k + 1):
-        newQ = queue.Queue()
-        while(not currQ.empty()):
-            currVertex = currQ.get()
-            # print('c', currVertex, graph[currVertex])
-            # print('g', graph[currVertex][list(graph[currVertex])[0]]['weight'])
-            # print(visited[currVertex])
-            neighbors = [(node, graph[currVertex][node]['weight'] + visited[currVertex]) for node in list(graph[currVertex])]
-            #print("n", neighbors)
-            for n in neighbors:
-                visited[n[0]] = min(n[1], visited.get(n[0], float('inf')))
-                newQ.put(n[0])
+    
+    return elementsInCluster
         
-        #print(visited)
-        currQ = newQ
 
-    return sorted(list(visited.items()), key= lambda v: v[1])[:k+1]
+
 
 def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_matrix, params=[]):
     """
@@ -70,12 +62,9 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
     #print(adjacency_matrix)
 
     print()
-    graph, message = adjacency_matrix_to_graph(adjacency_matrix)
+    origGraph, message = adjacency_matrix_to_graph(adjacency_matrix)
+    graph = nx.MultiGraph(origGraph)
     print("total list edges: ", list(graph.edges), "\n\n")
-    for i in range(0, 3):
-        print("edge 3: ", end='')
-        edge = list(graph.edges)[i]
-        print(edge, graph.get_edge_data(edge[0], edge[1]))
 
     homeIndicesInGraph = [list_of_locations.index(home) for home in list_of_homes]
     startingIndex = list_of_locations.index(starting_car_location)
@@ -84,25 +73,50 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
         print(f"adjacent edges to {home}:  {graph[home]}")
 
     print("\n----------\n")
-    k = 2
-    nodesToDelete = set()
+    k = 1
+    closestKNodesToHome = dict()
     for home in homeIndicesInGraph:
         print(f"cluster size {k} for {home}:")
         shortestKClusters = kClosestClusters(graph, home, k)
         print(f"fullCluster: {shortestKClusters} \n")
+        closestKNodesToHome[home] = shortestKClusters
 
-        nodesInCluster = [node[0] for node in shortestKClusters]
+
+    nodesToDelete = set()
+    nodesToClusters = dict()
+    homeClusters = dict()
+
+    for home in homeIndicesInGraph:
+        # print(f"cluster size {k} for {home}:")
+        # shortestKClusters = kClosestClusters(graph, home, k)
+        # print(f"fullCluster: {shortestKClusters} \n")
+
         clusterNode = Cluster(home)
-        
-        for node in nodesInCluster:
+        homeClusters[home] = clusterNode
+        cluster = [x[0] for x in closestKNodesToHome[home]]
+        for node in cluster:
             nodesToDelete.add(node)
-            neighbors = [x for x in list(graph[node]) if x not in nodesInCluster]
 
-            
+            if node in nodesToClusters:
+                for dupCluster in nodesToClusters[node]:
+                    graph.add_edge(clusterNode, dupCluster, \
+                        weight = 0, nodesCondensed = (node, node))
+
+            for nbor in origGraph[node]:
+                if nbor not in cluster:
+                    weightofEdge = origGraph.get_edge_data(node, nbor)['weight']
+                    if nbor in nodesToClusters:
+                        for nborCluster in nodesToClusters[nbor]:
+                           graph.add_edge(clusterNode, nborCluster, \
+                                weight = weightofEdge, nodesCondensed = (node, nbor)) 
+                    else:
+                        graph.add_edge(clusterNode, nbor, \
+                            weight = weightofEdge, nodesCondensed = (node, nbor))
+
+            nodesToClusters[node] = nodesToClusters.get(node, []) + [clusterNode]
 
 
-        break
-
+    print(3)
     
     pass
 
