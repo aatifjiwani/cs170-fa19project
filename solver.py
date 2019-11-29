@@ -25,6 +25,16 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
         A list of locations representing the car path
         A list of (location, [homes]) representing drop-offs
     """
+    print(list_of_locations)
+    #print(adjacency_matrix)
+
+    graph, message = adjacency_matrix_to_graph(adjacency_matrix)
+    print(list(graph.edges))
+    for i in range(0, 3):
+        print("edge 3: ", end='')
+        edge = list(graph.edges)[i]
+        print(edge, graph.get_edge_data(edge[0], edge[1]))
+
 
     
     pass
@@ -63,15 +73,16 @@ def solve_from_file(input_file, output_directory, params=[]):
     
     input_data = utils.read_file(input_file)
     num_of_locations, num_houses, list_locations, list_houses, starting_car_location, adjacency_matrix = data_parser(input_data)
-    car_path, drop_offs = solve(list_locations, list_houses, starting_car_location, adjacency_matrix, params=params)
+    solve(list_locations, list_houses, starting_car_location, adjacency_matrix, params=params)
+    # car_path, drop_offs = solve(list_locations, list_houses, starting_car_location, adjacency_matrix, params=params)
 
-    basename, filename = os.path.split(input_file)
-    output_filename = utils.input_to_output(filename)
-    output_file = f'{output_directory}/{output_filename}'
-    if not os.path.exists(output_directory):
-        os.makedirs(output_directory)
+    # basename, filename = os.path.split(input_file)
+    # output_filename = utils.input_to_output(filename)
+    # output_file = f'{output_directory}/{output_filename}'
+    # if not os.path.exists(output_directory):
+    #     os.makedirs(output_directory)
     
-    convertToFile(car_path, drop_offs, output_file, list_locations)
+    # convertToFile(car_path, drop_offs, output_file, list_locations)
 
 
 def solve_all(input_directory, output_directory, params=[]):
