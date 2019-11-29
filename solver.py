@@ -7,6 +7,8 @@ import utils
 
 from student_utils import *
 import networkx as nx
+
+import queue
 """
 ======================================================================
   Complete the following function.
@@ -25,19 +27,47 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
         A list of locations representing the car path
         A list of (location, [homes]) representing drop-offs
     """
-    print(list_of_locations)
+    #print(list_of_locations)
     #print(adjacency_matrix)
 
     graph, message = adjacency_matrix_to_graph(adjacency_matrix)
-    print(list(graph.edges))
+    print("total list edges: ", list(graph.edges), "\n\n")
     for i in range(0, 3):
         print("edge 3: ", end='')
         edge = list(graph.edges)[i]
         print(edge, graph.get_edge_data(edge[0], edge[1]))
 
+    homeIndicesInGraph = [list_of_locations.index(home) for home in list_of_homes]
+    startingIndex = list_of_locations.index(starting_car_location)
 
+    for home in homeIndicesInGraph:
+        print(f"adjacent edges to {home}:  {graph[home]}")
     
     pass
+
+def getKClusters(graph, start, k):
+
+    currentCluster = [start]
+    previousCluster = []
+    while (k != 0):
+        currQ = queue.Queue()
+        currQ.queue = queue.deque(currentCluster)
+
+        neighborLocations = []
+
+        while(not currQ.empty):
+            loc = currQ.get()
+            neighborLocations += list(graph[loc])
+
+        previousCluster += currentCluster
+        currentCluster = neighborLocations
+
+        k = k - 1
+
+    return previousCluster + currentCluster, currentCluster
+
+
+
     
 
 """
