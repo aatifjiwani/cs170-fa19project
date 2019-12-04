@@ -51,7 +51,6 @@ def createHamiltonianCycle(graph, max_weight=int, num_locations=int):
     graph.add_edge(vertexLastAdded, 0, weight=weight)
 	#graph.add_edge(0, vertexLastAdded, weight=weight)
 
-
 def createEdge(numEdges, maxWeight, graph=Graph, u=int, setOfVAndWeight=list):
 	#for v, w in setOfVAndWeight:
 	#	graph.add_edge(u, v, w)
@@ -118,7 +117,7 @@ def randomGenCheck(graph, i, j, k):
 	#print(matrixConvert(g, i))
 	#print(g.adj)
 	#print(its)
-	return g  
+	return g
 
 def saveGraphToFile(graph, maxLocations, locations, houses):
 	inputFileName = 'input/' + str(maxLocations) + '.in'
@@ -134,7 +133,21 @@ def saveGraphToFile(graph, maxLocations, locations, houses):
 	graphToMatrix = matrixConvert(graph, len(locations))
 	utils.write_to_file(inputFileName, graphToMatrix, True)
 
-  
+def FindPath(graph, maxedge):
+	g = copy.deepcopy(graph)
+	min = maxedge
+	at = 0
+	edges = g.adj[0]
+	print("her \n")
+	print(edges)
+	for e in edges:
+		if (edges[e]['weight'] < min):
+			min = edges[e]['weight']
+			at = e# -*- coding: utf-8 -*-
+	return (min, at)
+
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Parsing arguments')
     parser.add_argument('-l', type=int, help="Most locations")
@@ -149,9 +162,6 @@ if __name__ == "__main__":
 
     graph = nx.Graph()
     createHamiltonianCycle(graph, args.w, len(locations))
-
-    for c in nx.minimum_cycle_basis(graph, weight='weight'):
-        print(c)
 
     #graph = randomGen(graph, len(locations), 2*len(locations), args.w)
     randomGen(graph, len(locations), 2*len(locations), args.w)
@@ -250,11 +260,6 @@ if __name__ == "__main__":
 
     print(graph.edges)
 
-	
-	
-
-
-
 #   graph = nx.Graph()
 # 	# for u in edges.keys():
 # 	# 	incidentEdges = edges[u]
@@ -277,4 +282,3 @@ if __name__ == "__main__":
 	# 	5: [ (3,1) ],
 	# 	6: [ (0,1), (3,1)]
 	# }
-
