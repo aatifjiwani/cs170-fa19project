@@ -8,11 +8,45 @@ import mlrose
 import numpy as np
 
 from student_utils import *
+import networkx as nx
+
+from queue import PriorityQueue
 """
 ======================================================================
   Complete the following function.
 ======================================================================
 """
+
+class Cluster:
+    def __init__(self, homeIndex):
+        self.home = homeIndex
+
+    def __repr__(self):
+        return f"Cluster for home {self.home}"
+
+    def __str__(self):
+        return f"Cluster for home {self.home}"
+
+    def home(self):
+        return self.home
+
+
+def kClosestClusters(graph, start, k):
+    elementsInCluster = [] # (node, weight)
+    pq = PriorityQueue()
+    pq.put((0, start)) # (weight, node)
+    while (len(elementsInCluster) < k + 1 and not pq.empty()):
+        weight, poppedNode = pq.get()
+        if poppedNode not in elementsInCluster:
+            elementsInCluster.append((poppedNode, weight))
+            for nbor in graph[poppedNode]:
+                pq.put(( weight + graph[poppedNode][nbor][0]['weight'], nbor ))
+
+    
+    return elementsInCluster
+        
+
+
 
 def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_matrix, params=[]):
     """
@@ -26,6 +60,75 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
         A list of locations representing the car path
         A list of (location, [homes]) representing drop-offs
     """
+    #print(list_of_locations)
+    #print(adjacency_matrix)
+
+    print()
+    origGraph, message = adjacency_matrix_to_graph(adjacency_matrix)
+    graph = nx.MultiGraph(origGraph)
+    print("total list edges: ", list(graph.edges), "\n\n")
+
+    homeIndicesInGraph = [list_of_locations.index(home) for home in list_of_homes]
+    startingIndex = list_of_locations.index(starting_car_location)
+
+    for home in homeIndicesInGraph:
+        print(f"adjacent edges to {home}:  {graph[home]}")
+
+    print("\n----------\n")
+
+    k = 1
+    closestKNodesToHome = dict()
+    for home in homeIndicesInGraph:
+        print(f"cluster size {k} for {home}:")
+        shortestKClusters = kClosestClusters(graph, home, k)
+        print(f"fullCluster: {shortestKClusters} \n")
+        closestKNodesToHome[home] = shortestKClusters
+
+
+    nodesToDelete = set()
+    nodesToClusters = dict()
+    homeClusters = dict()
+
+    for home in homeIndicesInGraph:
+        # print(f"cluster size {k} for {home}:")
+        # shortestKClusters = kClosestClusters(graph, home, k)
+        # print(f"fullCluster: {shortestKClusters} \n")
+
+        clusterNode = Cluster(home)
+        homeClusters[home] = clusterNode
+        cluster = [x[0] for x in closestKNodesToHome[home]]
+        for node in cluster:
+            nodesToDelete.add(node)
+
+            if node in nodesToClusters:
+                for dupCluster in nodesToClusters[node]:
+                    graph.add_edge(clusterNode, dupCluster, \
+                        weight = 0, nodesCondensed = (node, node))
+
+            for nbor in origGraph[node]:
+                if nbor not in cluster:
+                    weightofEdge = origGraph.get_edge_data(node, nbor)['weight']
+                    if nbor in nodesToClusters:
+                        for nborCluster in nodesToClusters[nbor]:
+                           graph.add_edge(clusterNode, nborCluster, \
+                                weight = weightofEdge, nodesCondensed = (node, nbor)) 
+                    else:
+                        graph.add_edge(clusterNode, nbor, \
+                            weight = weightofEdge, nodesCondensed = (node, nbor))
+
+            nodesToClusters[node] = nodesToClusters.get(node, []) + [clusterNode]
+
+
+    for node in nodesToDelete:
+        graph.remove_node(node)
+
+    print(3)
+    
+
+
+
+
+
     homes = []
     homes.append(0)
     for i in list_of_homes:
@@ -86,15 +189,16 @@ def solve_from_file(input_file, output_directory, params=[]):
 
     input_data = utils.read_file(input_file)
     num_of_locations, num_houses, list_locations, list_houses, starting_car_location, adjacency_matrix = data_parser(input_data)
-    car_path, drop_offs = solve(list_locations, list_houses, starting_car_location, adjacency_matrix, params=params)
+    solve(list_locations, list_houses, starting_car_location, adjacency_matrix, params=params)
+    # car_path, drop_offs = solve(list_locations, list_houses, starting_car_location, adjacency_matrix, params=params)
 
-    basename, filename = os.path.split(input_file)
-    output_filename = utils.input_to_output(filename)
-    output_file = f'{output_directory}/{output_filename}'
-    if not os.path.exists(output_directory):
-        os.makedirs(output_directory)
-
-    convertToFile(car_path, drop_offs, output_file, list_locations)
+    # basename, filename = os.path.split(input_file)
+    # output_filename = utils.input_to_output(filename)
+    # output_file = f'{output_directory}/{output_filename}'
+    # if not os.path.exists(output_directory):
+    #     os.makedirs(output_directory)
+    
+    # convertToFile(car_path, drop_offs, output_file, list_locations)
 
 
 def solve_all(input_directory, output_directory, params=[]):
