@@ -73,6 +73,7 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
         print(f"adjacent edges to {home}:  {graph[home]}")
 
     print("\n----------\n")
+
     k = 1
     closestKNodesToHome = dict()
     for home in homeIndicesInGraph:
@@ -115,6 +116,9 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
 
             nodesToClusters[node] = nodesToClusters.get(node, []) + [clusterNode]
 
+
+    for node in nodesToDelete:
+        graph.remove_node(node)
 
     print(3)
     
