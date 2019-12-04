@@ -76,7 +76,7 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
 
     print("\n----------\n")
 
-    k = 1
+    k = 0
     closestKNodesToHome = dict()
     for home in homeIndicesInGraph:
         print(f"cluster size {k} for {home}:")
@@ -122,24 +122,24 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
     for node in nodesToDelete:
         graph.remove_node(node)
 
-    print(3)
+    homes = set()
+    if (startingIndex in homeClusters):
+        homes.add(homeClusters[startingIndex][0])
+    else:
+        homes.add(startingIndex)
     
+    for i in homeClusters.values():
+        homes.add(i)
 
+    homes = list(homes)
 
-
-
-
-    homes = []
-    homes.append(0)
-    for i in list_of_homes:
-        homes.append(list_of_locations.index(i))
     dist_list = []
     print(homes)
-    g = nx.Graph()
-    for i in range(len(adjacency_matrix)):
-        for j in range(len(adjacency_matrix)):
-            if (not adjacency_matrix[i][j] == 'x'):
-                g.add_edge(i, j, weight = adjacency_matrix[i][j])
+    g = graph
+    # for i in range(len(adjacency_matrix)):
+    #     for j in range(len(adjacency_matrix)):
+    #         if (not adjacency_matrix[i][j] == 'x'):
+    #             g.add_edge(i, j, weight = adjacency_matrix[i][j])
     shortest_paths = dict(nx.all_pairs_dijkstra(g, weight = 'weight'))
     for i in shortest_paths.keys():
         for j in shortest_paths[i][0].keys():
@@ -147,8 +147,9 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
                 print((i,j, shortest_paths[i][0][j]))
                 print("\n")
                 dist_list.append((homes.index(i), homes.index(j), shortest_paths[i][0][j] ))
+
     fitness_dists = mlrose.TravellingSales(distances = dist_list)
-    problem_fit = mlrose.TSPOpt(length = len(list_of_homes), fitness_fn = fitness_dists, maximize=False)
+    problem_fit = mlrose.TSPOpt(length = len(homes), fitness_fn = fitness_dists, maximize=False)
     best_state, best_fitness = mlrose.genetic_alg(problem_fit)
     print(best_state)
     print(best_fitness)
