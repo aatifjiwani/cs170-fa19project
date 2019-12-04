@@ -41,13 +41,6 @@ def createHamiltonianCycle(graph, max_weight=int, num_locations=int):
 
         edgesToAdd.remove(toVertex)
 
-<<<<<<< HEAD
-		graph.add_edge(vertexLastAdded, toVertex, weight=weight)
-		vertexLastAdded = toVertex
-
-	weight = random.randint(1, maxWeight)
-	graph.add_edge(vertexLastAdded, 0, weight=weight)
-=======
         weight = random.randint(1, maxWeight)
 
         graph.add_edge(vertexLastAdded, toVertex, weight=weight)
@@ -57,8 +50,6 @@ def createHamiltonianCycle(graph, max_weight=int, num_locations=int):
     weight = random.randint(1, maxWeight)
     graph.add_edge(vertexLastAdded, 0, weight=weight)
 	#graph.add_edge(0, vertexLastAdded, weight=weight)
->>>>>>> b2619c1ebcc90a8c7b8718ff741103cf2a3787c8
-
 
 def createEdge(numEdges, maxWeight, graph=Graph, u=int, setOfVAndWeight=list):
 	#for v, w in setOfVAndWeight:
@@ -172,17 +163,6 @@ if __name__ == "__main__":
     graph = nx.Graph()
     createHamiltonianCycle(graph, args.w, len(locations))
 
-<<<<<<< HEAD
-	graph = randomGenCheck(graph, len(locations), 2*len(locations), args.w)
-
-	#print(matrixConvert(graph, len(locations)))
-	#print(graph.adj)
-	print(FindPath(graph, args.w))
-=======
-    for c in nx.minimum_cycle_basis(graph, weight='weight'):
-        print(c)
->>>>>>> b2619c1ebcc90a8c7b8718ff741103cf2a3787c8
-
     #graph = randomGen(graph, len(locations), 2*len(locations), args.w)
     randomGen(graph, len(locations), 2*len(locations), args.w)
 
@@ -279,17 +259,6 @@ if __name__ == "__main__":
         utils.write_to_file(outputFileName, p + '\n', append=True)
 
     print(graph.edges)
-
-<<<<<<< HEAD
-
-
-
-=======
-	
-	
->>>>>>> b2619c1ebcc90a8c7b8718ff741103cf2a3787c8
-
-
 
 #   graph = nx.Graph()
 # 	# for u in edges.keys():
