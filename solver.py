@@ -47,51 +47,8 @@ def kClosestClusters(graph, start, k):
     
     return elementsInCluster
 
-# def switch(pair = tuple):
-#     return (pair[1], pair[0])
 
-
-# def findPossibleEdgesCluster(fromCluster = Cluster, toCluster = Cluster, graph, clusters = dict):
-#     clusterEdges = dict(graph[fromCluster][toCluster])
-#     nodesInFromCluster = [x[0] for x in clusters[fromCluster.home()]]
-#     nodesInToCluster = 
-#     for edge in clusterEdges.values():
-#         condensedEdges = edge['condensed']
-
-
-#     pass
-        
-
-def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_matrix, params=[]):
-    """
-    Write your algorithm here.
-    Input:
-        list_of_locations: A list of locations such that node i of the graph corresponds to name at index i of the list
-        list_of_homes: A list of homes
-        starting_car_location: The name of the starting location for the car
-        adjacency_matrix: The adjacency matrix from the input file
-    Output:
-        A list of locations representing the car path
-        A list of (location, [homes]) representing drop-offs
-    """
-    #print(list_of_locations)
-    #print(adjacency_matrix)
-
-    print()
-    origGraph, message = adjacency_matrix_to_graph(adjacency_matrix)
-    shortest_paths_original = dict(nx.all_pairs_dijkstra(origGraph, weight = 'weight'))
-    graph = nx.MultiGraph(origGraph)
-    print("total list edges: ", list(graph.edges), "\n\n")
-
-    homeIndicesInGraph = [list_of_locations.index(home) for home in list_of_homes]
-    startingIndex = list_of_locations.index(starting_car_location)
-
-    for home in homeIndicesInGraph:
-        print(f"adjacent edges to {home}:  {graph[home]}")
-
-    print("\n----------\n")
-
-    k = 1
+def findKClusters(graph, homeIndicesInGraph, k):
     closestKNodes = [] # (set(), [])
     #closestKNodesToHome = dict()
     for home in homeIndicesInGraph:
@@ -115,9 +72,9 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
         if not found:
             closestKNodes.append((shortestKClusters, [home]))
 
+    return closestKNodes
 
-
-
+def addClustersToGraph(graph, origGraph, closestKNodes):
     nodesToDelete = set()
     nodesToClusters = dict()
     homeClusters = dict()
@@ -145,36 +102,12 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
                             weight = weightofEdge, condensed=(node, nbor))
 
             nodesToClusters[node] = clusterNode
-        
-        # clusterNode = Cluster(home)
-        # homeClusters[home] = clusterNode
-        # cluster = [x[0] for x in closestKNodesToHome[home]]
-        # for node in cluster:
-        #     nodesToDelete.add(node)
 
-        #     if node in nodesToClusters:
-        #         for dupCluster in nodesToClusters[node]:
-        #             graph.add_edge(clusterNode, dupCluster, \
-        #                 weight = 0, nodesCondensed = (node, node))
+    return nodesToDelete, nodesToClusters, homeClusters
 
-        #     for nbor in origGraph[node]:
-        #         if nbor not in cluster:
-        #             weightofEdge = origGraph.get_edge_data(node, nbor)['weight']
-        #             if nbor in nodesToClusters:
-        #                 for nborCluster in nodesToClusters[nbor]:
-        #                    graph.add_edge(clusterNode, nborCluster, \
-        #                         weight = weightofEdge, nodesCondensed = (node, nbor)) 
-        #             else:
-        #                 graph.add_edge(clusterNode, nbor, \
-        #                     weight = weightofEdge, nodesCondensed = (node, nbor))
-
-        #     nodesToClusters[node] = nodesToClusters.get(node, []) + [clusterNode]
-
-
-    for node in nodesToDelete:
-        graph.remove_node(node)
-
+def findTSPPath(graph, nodesToClusters, homeClusters, startingIndex, ):
     homes = set()
+
     if (startingIndex in nodesToClusters):
         homes.add(nodesToClusters[startingIndex])
     else:
@@ -186,12 +119,9 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
     homes = list(homes)
 
     dist_list = []
-    print(homes)
+    #print(homes)
     g = graph
-    # for i in range(len(adjacency_matrix)):
-    #     for j in range(len(adjacency_matrix)):
-    #         if (not adjacency_matrix[i][j] == 'x'):
-    #             g.add_edge(i, j, weight = adjacency_matrix[i][j])
+
     shortest_paths = dict(nx.all_pairs_dijkstra(g, weight = 'weight'))
     for i in shortest_paths.keys():
         for j in shortest_paths[i][0].keys():
@@ -209,32 +139,10 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
     fitness_dists = mlrose.TravellingSales(distances = dist_list)
     problem_fit = mlrose.TSPOpt(length = len(homes), fitness_fn = fitness_dists, maximize=False)
     best_state, best_fitness = mlrose.genetic_alg(problem_fit)
-    
-    best_state = list(best_state)
-    print(best_state)
-    print([homes[index] for index in list(best_state)])
-    print(f"#{best_fitness} \n")
 
-    if startingIndex in nodesToClusters:
-        isBest = best_state.index(homes.index(nodesToClusters[startingIndex]))
-    else:
-        isBest = best_state.index(homes.index(startingIndex))
+    return homes, shortest_paths, best_state
 
-
-
-    best_state = best_state[isBest:] + best_state[:isBest]
-    print([homes[index] for index in list(best_state)])
-
-    path = [homes[index] for index in list(best_state)]
-    path = path[1:] + path[:1]
-    
-    
-    fullClusterPath = [path[-1]]
-    for i in range(-1, len(path) - 1):
-        full = shortest_paths[path[i]][1][path[i+1]][1:-1]
-        fullClusterPath = fullClusterPath + full + [path[i + 1]]
-
-
+def findDTHPath(graph, fullClusterPath, startingIndex, nodesToClusters, shortest_paths_original):
     currentIndex = startingIndex
     fullPath = []
     dropOffLocations = dict()
@@ -278,6 +186,117 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
         currentIndex = nodeToGoTo
 
     fullPath += [startingIndex]
+
+    return fullPath, dropOffLocations, totalWeight
+
+def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_matrix, params=[]):
+    """
+    Write your algorithm here.
+    Input:
+        list_of_locations: A list of locations such that node i of the graph corresponds to name at index i of the list
+        list_of_homes: A list of homes
+        starting_car_location: The name of the starting location for the car
+        adjacency_matrix: The adjacency matrix from the input file
+    Output:
+        A list of locations representing the car path
+        A list of (location, [homes]) representing drop-offs
+    """
+
+    origGraph, message = adjacency_matrix_to_graph(adjacency_matrix)
+    shortest_paths_original = dict(nx.all_pairs_dijkstra(origGraph, weight = 'weight'))
+    graph = nx.MultiGraph(origGraph)
+
+    homeIndicesInGraph = [list_of_locations.index(home) for home in list_of_homes]
+    startingIndex = list_of_locations.index(starting_car_location)
+    nodesToClusters = dict()
+    try:
+        k = -1
+        while(len(nodesToClusters.keys()) != len(list_of_locations))
+            k = k+1
+
+            closestKNodes = findKClusters(graph, homeIndicesInGraph, k)
+
+            nodesToDelete, nodesToClusters, homeClusters = addClustersToGraph(graph, origGraph, closestKNodes)
+
+            for node in nodesToDelete:
+                graph.remove_node(node)
+
+            homes, shortest_paths, best_state = findTSPPath(graph, nodesToClusters, homeClusters, startingIndex)
+            
+            best_state = list(best_state)
+            # print(best_state)
+            # print([homes[index] for index in list(best_state)])
+
+            if startingIndex in nodesToClusters:
+                isBest = best_state.index(homes.index(nodesToClusters[startingIndex]))
+            else:
+                isBest = best_state.index(homes.index(startingIndex))
+
+            best_state = best_state[isBest:] + best_state[:isBest]
+            # print([homes[index] for index in list(best_state)])
+
+            path = [homes[index] for index in list(best_state)]
+            path = path[1:] + path[:1]
+            
+            fullClusterPath = [path[-1]]
+            for i in range(-1, len(path) - 1):
+                full = shortest_paths[path[i]][1][path[i+1]][1:-1]
+                fullClusterPath = fullClusterPath + full + [path[i + 1]]
+
+            fullPath, dropOffLocations, totalWeight = findDTHPath(graph, fullClusterPath, startingIndex, \
+                nodesToClusters, shortest_paths_original)
+
+            print("For k = ", k, "----")
+            print("full path: ", fullPath)
+            print("dropOffLocations: ", dropOffLocations)
+            print("total weight: ", totalWeight, "\n")
+    except:
+        print("an error occurred")
+        pass
+
+    # currentIndex = startingIndex
+    # fullPath = []
+    # dropOffLocations = dict()
+    # totalWeight = 0
+
+    # for nodeInPath in fullClusterPath[1:]:
+    #     runningMinWeight = float('inf')
+    #     runningMinPath = None
+    #     nodeToGoTo = None
+    #     if nodeInPath == fullClusterPath[-1]:
+    #         runningMinWeight = shortest_paths_original[currentIndex][0][startingIndex]
+    #         runningMinPath = shortest_paths_original[currentIndex][1][startingIndex]
+    #         nodeToGoTo = startingIndex
+    #     elif (type(nodeInPath) == Cluster):
+    #         nodesCluster = nodeInPath.nodes
+    #         for n in nodesCluster:
+    #             weight = shortest_paths_original[currentIndex][0][n]
+    #             if (weight < runningMinWeight):
+    #                 nodeToGoTo = n
+    #                 runningMinWeight = weight
+    #                 runningMinPath = shortest_paths_original[currentIndex][1][n]
+    #     elif (type(nodeInPath) == int):
+    #         nodeToGoTo = nodeInPath
+    #         runningMinWeight = shortest_paths_original[currentIndex][0][nodeInPath]
+    #         runningMinPath = shortest_paths_original[currentIndex][1][nodeInPath]
+    #     else:
+    #         raise Exception
+
+    #     totalWeight += runningMinWeight
+
+    #     for vertex in runningMinPath:
+    #         if vertex in nodesToClusters:
+    #             cluster = nodesToClusters[vertex]
+    #             for tahome in cluster.home:
+    #                 weight = shortest_paths_original[vertex][0][tahome]
+    #                 currDropoff, currMin = dropOffLocations.get(tahome, (None, float('inf')))
+    #                 if (weight < currMin):
+    #                     dropOffLocations[tahome] = (vertex, weight)
+
+    #     fullPath += runningMinPath[:-1]
+    #     currentIndex = nodeToGoTo
+
+    # fullPath += [startingIndex]
 
 
     print(3)
