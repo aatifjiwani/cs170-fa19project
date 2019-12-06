@@ -54,20 +54,29 @@ def findKClusters(graph, homeIndicesInGraph, k):
         #print(f"fullCluster: {shortestKClusters} \n")
         #closestKNodesToHome[home] = shortestKClusters
         found = False
+        clusterList = []
         for cluster in closestKNodes:
-            nodesInCluster, forHomes = cluster
+            nodesInCluster, _ = cluster
             if not nodesInCluster.isdisjoint(shortestKClusters):
-                closestKNodes.remove(cluster)
-
-                merged = nodesInCluster.union(shortestKClusters)
-                forHomes.append(home)
-                closestKNodes.append((merged, forHomes))
-
+                clusterList.append(cluster)
                 found = True
-                break
         
         if not found:
             closestKNodes.append((shortestKClusters, [home]))
+        else:
+            merged = set()
+            totalHomes = set()
+            for cluster in clusterList:
+                nodesInCluster, forHomes = cluster
+                closestKNodes.remove(cluster)
+                merged = merged.union(nodesInCluster)
+                totalHomes = totalHomes.union(forHomes)
+
+            merged = merged.union(shortestKClusters)
+            totalHomes = list(totalHomes.union(set([home])))
+
+            closestKNodes.append((merged, totalHomes))
+
 
     return closestKNodes
 
@@ -279,8 +288,8 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
                 countInfinity = countInfinity + 1
 
     except Exception:
-        traceback.print_exc()
-        print("an error occurred")
+        #traceback.print_exc()
+        print("\n max k limit reached")
         pass
 
     if (bestTotalWeight == float('inf')):
