@@ -243,7 +243,8 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
         bestFullPath = None
         bestTotalWeight = float('inf')
         countInfinity = 0
-        while(len(nodesToClusters.keys()) != len(list_of_locations) and countInfinity < 3):
+        while(len(nodesToClusters.keys()) != len(list_of_locations) \
+            and countInfinity < 3 and k < 100):
             k = k+1
             graph = nx.MultiGraph(origGraph)
             closestKNodes = findKClusters(graph, homeIndicesInGraph, k)
