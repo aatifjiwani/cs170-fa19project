@@ -24,10 +24,10 @@ class Cluster:
         self.nodes = nodes
 
     def __repr__(self):
-        return f"Cluster for home {' and '.join(str(x) for x in self.home)}"
+        return "Cluster for home " + ' and '.join(str(x) for x in self.home)
 
     def __str__(self):
-        return f"Cluster for home {' and '.join(str(x) for x in self.home)}"
+        return "Cluster for home " + ' and '.join(str(x) for x in self.home)
 
     def home(self):
         return self.home
@@ -309,7 +309,7 @@ def startSolver(list_locations, list_houses, starting_car_location, adjacency_ma
 
     basename, filename = os.path.split(input_file)
     output_filename = utils.input_to_output(filename)
-    output_file = f'{output_directory}/{output_filename}'
+    output_file = output_directory + '/' + output_filename
     if not os.path.exists(output_directory):
         os.makedirs(output_directory)
 
@@ -319,9 +319,9 @@ def startSolver(list_locations, list_houses, starting_car_location, adjacency_ma
     for node in fullPath:
         pathString += list_locations[node] + ' '
         if (node in dropOffLocations):
-            string = f"{list_locations[node]}" + ' '
+            string = str(list_locations[node]) + ' '
             for h in dropOffLocations[node]:
-                string += f"{list_locations[h]}" + ' '
+                string += str(list_locations[h]) + ' '
             string = string.strip()
             dropOffStrings.append(string)
             dropOffLocations.pop(node, None)
