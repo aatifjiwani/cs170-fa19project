@@ -12,11 +12,6 @@ from student_utils import *
 import networkx as nx
 
 from queue import PriorityQueue
-"""
-======================================================================
-  Complete the following function.
-======================================================================
-"""
 
 class Cluster:
     def __init__(self, homes = list, nodes = list):
@@ -47,12 +42,8 @@ def kClosestClusters(graph, start, k):
 
 def findKClusters(graph, homeIndicesInGraph, k):
     closestKNodes = [] # (set(), [])
-    #closestKNodesToHome = dict()
     for home in homeIndicesInGraph:
-        #print(f"cluster size {k} for {home}:")
         shortestKClusters = set([x[0] for x in kClosestClusters(graph, home, k)])
-        #print(f"fullCluster: {shortestKClusters} \n")
-        #closestKNodesToHome[home] = shortestKClusters
         found = False
         clusterList = []
         for cluster in closestKNodes:
@@ -125,7 +116,6 @@ def findTSPPath(graph, nodesToClusters, homeClusters, startingIndex ):
     homes = list(homes)
 
     dist_list = []
-    #print(homes)
     g = graph
 
     shortest_paths = dict(nx.all_pairs_dijkstra(g, weight = 'weight'))
@@ -135,12 +125,12 @@ def findTSPPath(graph, nodesToClusters, homeClusters, startingIndex ):
                 #print((i,j, shortest_paths[i][0][j]))
                 #print("\n")
 
-                blah = shortest_paths[i][0][j]
-                if blah == 0:
-                    blah = 0.01
+                currWeight = shortest_paths[i][0][j]
+                if currWeight == 0:
+                    currWeight = 0.01
 
 
-                dist_list.append((homes.index(i), homes.index(j), blah ))
+                dist_list.append((homes.index(i), homes.index(j), currWeight ))
 
     fitness_dists = mlrose.TravellingSales(distances = dist_list)
     problem_fit = mlrose.TSPOpt(length = len(homes), fitness_fn = fitness_dists, maximize=False)
@@ -219,18 +209,6 @@ def generateDefaultSolution(startingIndex, homeIndices):
     return bestFullPath, bestDropoffLocations
 
 def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_matrix, params=[]):
-    """
-    Write your algorithm here.
-    Input:
-        list_of_locations: A list of locations such that node i of the graph corresponds to name at index i of the list
-        list_of_homes: A list of homes
-        starting_car_location: The name of the starting location for the car
-        adjacency_matrix: The adjacency matrix from the input file
-    Output:
-        A list of locations representing the car path
-        A list of (location, [homes]) representing drop-offs
-    """
-
     origGraph, message = adjacency_matrix_to_graph(adjacency_matrix)
     shortest_paths_original = dict(nx.all_pairs_dijkstra(origGraph, weight = 'weight'))
 
@@ -278,7 +256,6 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
 
             print("For k = ", k, "----")
             print("full path: ", fullPath)
-            #print("dropOffLocations: ", dropOffLocations)
             print("total weight: ", totalWeight, "\n")
 
             if (totalWeight < bestTotalWeight):
@@ -289,7 +266,6 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
                 countInfinity = countInfinity + 1
 
     except Exception:
-        #traceback.print_exc()
         print("\n max k limit reached")
         pass
 
@@ -334,21 +310,6 @@ def startSolver(list_locations, list_houses, starting_car_location, adjacency_ma
 
     utils.write_to_file(output_file, pathString)
 
-
-
-
-
-
-"""
-======================================================================
-   No need to change any code below this line
-======================================================================
-"""
-
-"""
-Convert solution with path and dropoff_mapping in terms of indices
-and write solution output in terms of names to path_to_file + file_number + '.out'
-"""
 def convertToFile(path, dropoff_mapping, path_to_file, list_locs):
     string = ''
     for node in path:
@@ -376,16 +337,6 @@ def solve_from_file(input_file, output_directory, params=[]):
     
     startSolver(list_locations, list_houses, starting_car_location, adjacency_matrix, \
         input_file, output_directory)
-    # car_path, drop_offs = solve(list_locations, list_houses, starting_car_location, adjacency_matrix, params=params)
-
-    # basename, filename = os.path.split(input_file)
-    # output_filename = utils.input_to_output(filename)
-    # output_file = f'{output_directory}/{output_filename}'
-    # if not os.path.exists(output_directory):
-    #     os.makedirs(output_directory)
-    
-    # convertToFile(car_path, drop_offs, output_file, list_locations)
-
 
 def solve_all(input_directory, output_directory, params=[]):
     input_files = utils.get_files_with_extension(input_directory, 'in')

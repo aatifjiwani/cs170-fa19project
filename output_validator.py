@@ -15,14 +15,14 @@ def validate_output(input_file, output_file, params=[]):
     input_data = utils.read_file(input_file)
     output_data = utils.read_file(output_file)
 
-    input_message, input_error = input_validator.tests(input_file)
+    #input_message, input_error = input_validator.tests(input_file)
     cost, message = tests(input_data, output_data, params=params)
-    message = 'Comments about input file:\n\n' + input_message + 'Comments about output file:\n\n' + message
+    message = 'Comments about output file:\n\n' + message
 
-    print(message)
-    if input_error:
-        return input_error, 'infinite', input_message + 'Since this input is invalid, you will not receive a score for its output.\n'
-    return input_error, cost, message
+    #print(message)
+    # if input_error:
+    #     return input_error, 'infinite', input_message + 'Since this input is invalid, you will not receive a score for its output.\n'
+    return None, cost, message
 
 
 def validate_all_outputs(input_directory, output_directory, params=[]):
